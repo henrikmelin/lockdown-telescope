@@ -34,6 +34,13 @@ _More to be added!_
 
 * **A bluetooth game pad.** I got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
 
+## Building the telescope mount
+
+Using my trusted circular saw, some plywood, and the two lazy susans I did cobble together  a rudimentary telescope mount. Since I had no solid plan when I started sawing, I had to swap quite a few pieces out until it made sense. I was trying to make sure that the telescope had a range in altitude and azimuth that covered the view in my back-yard (180 degrees of azimuth and horizon to zenith in altitude). Using lead-screws as a telescope driver limits the use of the telescope to a portion of the sky. 
+
+![Camera mounting](/images/saw.jpg)
+
+
 
 ## The camera 
 
