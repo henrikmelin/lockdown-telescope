@@ -26,10 +26,18 @@ _More to be added!_
 
 * **A prototyping board** to organise the various connections. The [Adafruit Perma-Proto HAT](https://shop.pimoroni.com/products/adafruit-perma-proto-hat-for-pi-mini-kit?variant=1038451613) is excellent for this (Pimoroni - £4.80)
 
-* **Bits of wood** for the telescope mount. I have quite a bit of 18 mm plywood left over from when I built my kitchen, so will consider it free of charge.
+* **Bits of wood** for the telescope mount. I have quite a bit of 18 mm plywood left over from when I built my kitchen, so will consider it free of charge. 🌳
 
+* **A bluetooth game pad.** I got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
 
-// 33.90 + 24.0 + 15 + 8.38 + 13.80 + 15 + 5.18 + 3.49 + 4.80
+## The camera 
+
+In order to use the Raspberry Pi Camera (v. 2.1) in a telescope, the attached lens has to be removed. The lens can be screwed out, but I found it terribly difficult to get any traction on it, so made a bit of a meal of it, ultimately using a razor blade to turn the lens out of its threading. 
+
+I found a bit of PVC pipe to be inserted into the end of the telescope with the camera mounted with a rubber band and some [brass Raspberry Pi standoffs](https://www.amazon.co.uk/Geekworm-Raspberry-Installation-Standoff-Accessories/dp/B07MN2GY6Y/)
+
+![Camera mounting](/images/camera.jpg)
+
 
 ## Raspberry Pi GPIO mappings
 
