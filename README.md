@@ -14,6 +14,8 @@ _More to be added!_
 
 * **Three stepper motors and controller boards.** These will control altitude, azimuth and focus motion on the telescope. I got 28BYJ-48 motor with the ULN2003 motor driver board on eBay for the total price of £8.38! 
 
+![Stepper motor and driver board](/images/motor-kit.jpg)
+
 * **Two lead screws with fittings.** These will translate the rotating motor motion to a linear motion that will move the telescope up/down (altitude) and left/right (azimuth). I got two 300 mm screws that came with both the nuts and the motor couplers (eBay  - £16.70)
 
 * **An inertial measurement unit (IMU).** This will give the direction that the telescope is pointing in. I use the [ICM20948](https://shop.pimoroni.com/products/icm20948) from Pimoroni's Breakout Garden suite of controllers that has a magnetometer (for the azimuth pointing), a gyroscope and accelerometer (for the altitude posting) (Pimoroni - £13.80)
@@ -24,11 +26,14 @@ _More to be added!_
 
 * **A coupler** that can connect the stepper motor and the focus shaft (eBay - 3.49)
 
+![Replacing manual focus with auto-focus](/images/focus-shaft.jpg)
+
 * **A prototyping board** to organise the various connections. The [Adafruit Perma-Proto HAT](https://shop.pimoroni.com/products/adafruit-perma-proto-hat-for-pi-mini-kit?variant=1038451613) is excellent for this (Pimoroni - £4.80)
 
 * **Bits of wood** for the telescope mount. I have quite a bit of 18 mm plywood left over from when I built my kitchen, so will consider it free of charge. 🌳
 
 * **A bluetooth game pad.** I got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
+
 
 ## The camera 
 
@@ -37,6 +42,8 @@ In order to use the Raspberry Pi Camera (v. 2.1) in a telescope, the attached le
 I found a bit of PVC pipe to be inserted into the end of the telescope with the camera mounted with a rubber band and some [brass Raspberry Pi standoffs](https://www.amazon.co.uk/Geekworm-Raspberry-Installation-Standoff-Accessories/dp/B07MN2GY6Y/)
 
 ![Camera mounting](/images/camera.jpg)
+
+
 
 
 ## Raspberry Pi GPIO mappings
