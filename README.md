@@ -61,7 +61,7 @@ For the altitude control, there is about 9000 stepper motor steps that covers 80
 The driver class looks like this: 
 
 
-```
+```python
 import RPi.GPIO as GPIO
 import atexit, pickle, os, time
 import numpy as np
@@ -178,6 +178,20 @@ class motor28BJController() :
         # GPIO.cleanup()
    
 ```
+
+And so one instance can be created for each motor: 
+
+```python
+alt_pims =[17, 18, 27, 22]
+altMotor = motor28BJController(alt_pims, 'altitude', limits=[0, 8863])
+    
+azi_pims = [14, 15, 23, 24]
+self.aziMotor = motor28BJController(azi_pims, 'azimuth', limits = [0, 13500])
+
+focus_pins = [5, 6, 12, 13]
+self.focusMotor = motor28BJController(focus_pins, 'focus', limits = [0, 1625])
+```
+
 
 
 ## Raspberry Pi GPIO mappings
