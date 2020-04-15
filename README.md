@@ -58,8 +58,9 @@ The 28BYJ-48 stepper motors are ubiquitous and therefore very cheap. These motor
 
 For the altitude control, there is about 9000 stepper motor steps that covers 80 degrees of movement over about 25 cm of the lead screw, giving a minimum resolution of 0.009 degrees ~ 0.5 arc minutes = 30 arc seconds (1 degree contains 60 minutes of arc and 3600 seconds of arc). This less than the diameter of Jupiter on the night-sky, so will be more adequate, if not overkill, for driving this tiny telescope. 
 
-The driver class looks like this: 
+![Azimuth and altitude motion](images/movement-screws.jpg)
 
+The controller class looks like this: 
 
 ```python
 import RPi.GPIO as GPIO
@@ -179,17 +180,17 @@ class motor28BJController() :
    
 ```
 
-And so one instance can be created for each motor: 
+And so one instance can be created for each of the three stepper motors: 
 
 ```python
 alt_pims =[17, 18, 27, 22]
 altMotor = motor28BJController(alt_pims, 'altitude', limits=[0, 8863])
     
 azi_pims = [14, 15, 23, 24]
-self.aziMotor = motor28BJController(azi_pims, 'azimuth', limits = [0, 13500])
+aziMotor = motor28BJController(azi_pims, 'azimuth', limits = [0, 13500])
 
 focus_pins = [5, 6, 12, 13]
-self.focusMotor = motor28BJController(focus_pins, 'focus', limits = [0, 1625])
+focusMotor = motor28BJController(focus_pins, 'focus', limits = [0, 1625])
 ```
 
 
