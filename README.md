@@ -14,9 +14,7 @@ _More to be added!_
 
 * **Three stepper motors and controller boards.** These will control altitude, azimuth and focus motion on the telescope. I got 28BYJ-48 motor with the ULN2003 motor driver board on eBay for the total price of £8.38! 
 
-![Stepper motor and driver board](/images/motor-kit.jpg)
-
-* **Two lead screws with fittings.** These will translate the rotating motor motion to a linear motion that will move the telescope up/down (altitude) and left/right (azimuth). I got two 300 mm screws that came with both the nuts and the motor couplers (eBay  - £16.70)
+* **Two lead screws with fittings.** These will translate the rotating motor motion to a linear motion that will move the telescope up/down (altitude) and left/right (azimuth). Since these form part of lots of 3D printers, they're everywhere and quite affordable. I got two 300 mm screws that came with both the nuts and the motor couplers (eBay  - £16.70)
 
 * **An inertial measurement unit (IMU).** This will give the direction that the telescope is pointing in. I use the [ICM20948](https://shop.pimoroni.com/products/icm20948) from Pimoroni's Breakout Garden suite of controllers that has a magnetometer (for the azimuth pointing), a gyroscope and accelerometer (for the altitude posting) (Pimoroni - £13.80)
 
@@ -32,7 +30,8 @@ _More to be added!_
 
 * **Bits of wood** for the telescope mount. I have quite a bit of 18 mm plywood left over from when I built my kitchen, so will consider it free of charge. 🌳
 
-* **A bluetooth game pad.** I got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
+* **A bluetooth game pad.** I want something that'll manually move and focus the telescope and navigate the menu of the screen, so what better option than a games controller! 
+I already got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
 
 ## Building the telescope mount
 
@@ -84,6 +83,7 @@ class motor28BJController() :
         self.pins = pins       
         self.limits = limits
         self.nickname = nickname
+        self.previous_warning = ''
         self.savefile = 'motor_position_' + nickname + '.pickle'
         atexit.register(self.exit)
 
@@ -183,15 +183,53 @@ class motor28BJController() :
 And so one instance can be created for each of the three stepper motors: 
 
 ```python
-alt_pims =[17, 18, 27, 22]
-altMotor = motor28BJController(alt_pims, 'altitude', limits=[0, 8863])
+alt_pins =[17, 18, 27, 22]
+altMotor = motor28BJController(alt_pins, 'altitude', limits=[0, 8863])
     
-azi_pims = [14, 15, 23, 24]
-aziMotor = motor28BJController(azi_pims, 'azimuth', limits = [0, 13500])
+azi_pins = [14, 15, 23, 24]
+aziMotor = motor28BJController(azi_pins, 'azimuth', limits = [0, 13500])
 
 focus_pins = [5, 6, 12, 13]
 focusMotor = motor28BJController(focus_pins, 'focus', limits = [0, 1625])
 ```
+
+
+## The gamepad controller 
+
+To pair the bluetooth 8BitDo SN30 Bluetooth game pad with the Raspberry Pi:
+
+`sudo bluetoothctl`
+
+Then turn on the bluetooth controller by holding `X`, then pressing `start`. This will start the controller in `xinput` mode, which was [originally a protocol for the Xbox 360](https://en.wikipedia.org/wiki/DirectInput). 
+
+```
+[bluetooth]# agent on
+[bluetooth]# default-agent
+[bluetooth]# scan on
+
+```
+Wait for the bluetooth to pick up the controller - should look something like this:
+
+
+`Device E4:17:D8:38:F1:FA 8Bitdo SN30 GamePad`
+
+
+Then just trust, pair, and connect to the gamepad: 
+
+```
+[bluetooth]# trust E4:17:D8:38:F1:FA
+[bluetooth]# pair E4:17:D8:38:F1:FA
+[bluetooth]# connect E4:17:D8:38:F1:FA
+[bluetooth]# exit
+
+```
+
+This will make the gamepad automatically connect to the Raspberry Pi and create the device in, e.g.: 
+
+`/dev/input/event0`
+
+Which can then be polled for event (i.e. some button has been pressed!). Each press on the pad returns a event name and an event value. These names don't make a lot of sense, so I have a function in the `interfaceController` that can parse them into more sensible 
+
 
 
 
