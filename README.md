@@ -206,7 +206,6 @@ Then turn on the bluetooth controller by holding `X`, then pressing `start`. Thi
 [bluetooth]# agent on
 [bluetooth]# default-agent
 [bluetooth]# scan on
-
 ```
 Wait for the bluetooth to pick up the controller - should look something like this:
 
@@ -221,7 +220,6 @@ Then just trust, pair, and connect to the gamepad:
 [bluetooth]# pair E4:17:D8:38:F1:FA
 [bluetooth]# connect E4:17:D8:38:F1:FA
 [bluetooth]# exit
-
 ```
 
 This will make the gamepad automatically connect to the Raspberry Pi and create the device in, e.g.: 
@@ -234,6 +232,9 @@ Which can then be polled for event (i.e. some button has been pressed!). Each pr
 
 
 ## Raspberry Pi GPIO mappings
+
+![Prototype Telescope Controller HAT](images/hat.jpg)
+
 
 | GPIO pin | Connects to  | Purpose |
 |:----------------:|:-------------:|:-------:|
