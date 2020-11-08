@@ -1,7 +1,16 @@
 import RPi.GPIO as GPIO
 import atexit, pickle, os, time
 import numpy as np
+import threading
 
+
+def threaded(fn):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+    return wrapper
+    
 class motor28BJController() : 
     """
     Driver class for the 28BJ-48 stepper motor
@@ -20,7 +29,11 @@ class motor28BJController() :
         self.limits = limits
         self.nickname = nickname
         self.savefile = 'motor_position_' + nickname + '.pickle'
+        self.savefile_npy = 'data/motor_position_' + nickname + '.npy'
+        
         atexit.register(self.exit)
+
+        self.previous_warning = ''
 
         # Setup the GPIO mode
         GPIO.setmode(GPIO.BCM)
@@ -47,9 +60,16 @@ class motor28BJController() :
         self.wait_time = 0.8e-3
 
         # Restore previously saved 
-        if (os.path.isfile(self.savefile)) : 
-            self.position = pickle.load( open( self.savefile, 'rb' ) )
+#        if (os.path.isfile(self.savefile)) : 
+#            self.position = pickle.load( open( self.savefile, 'rb' ) )
+#            print('Loaded existing position for ' + self.nickname + ': ', self.position)
+            
+        if (os.path.isfile(self.savefile_npy)) : 
+            self.position = np.load(self.savefile_npy)
             print('Loaded existing position for ' + self.nickname + ': ', self.position)
+
+
+
 
     #
     #   Move the position of the motor 
@@ -85,6 +105,7 @@ class motor28BJController() :
     #
     #   Go to a specific motor position
     #
+    #@threaded
     def goto_pos(self, position) : 
         if (position > self.position) : 
             while (position != self.position) : 
@@ -98,7 +119,7 @@ class motor28BJController() :
     #    
     def warning(self, message) : 
         # Stop lots of the same messages
-        if (self.message != self.previous_warning) :        
+        if (message != self.previous_warning) :        
             print('🚨 MOTOR WARNING 🚨 ' + message)
         self.previous_warning = message
         return False
@@ -109,6 +130,7 @@ class motor28BJController() :
     def exit(self) :     
         print('👋  Cleaning up motor ' +  self.nickname + ' 🧽 ')
         pickle.dump( self.position , open( self.savefile, 'wb' ) )
+        np.save(self.savefile_npy, self.position)
         # Note that I'm noot cleaning up the GPIOs - I wanna do that only once
         # when we're cleaning up everything - perhaps not the best solution... 
         # GPIO.cleanup()
