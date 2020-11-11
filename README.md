@@ -14,9 +14,7 @@ _More to be added!_
 
 * **Three stepper motors and controller boards.** These will control altitude, azimuth and focus motion on the telescope. I got 28BYJ-48 motor with the ULN2003 motor driver board on eBay for the total price of £8.38! 
 
-![Stepper motor and driver board](/images/motor-kit.jpg)
-
-* **Two lead screws with fittings.** These will translate the rotating motor motion to a linear motion that will move the telescope up/down (altitude) and left/right (azimuth). I got two 300 mm screws that came with both the nuts and the motor couplers (eBay  - £16.70)
+* **Two lead screws with fittings.** These will translate the rotating motor motion to a linear motion that will move the telescope up/down (altitude) and left/right (azimuth). Since these form part of lots of 3D printers, they're everywhere and quite affordable. I got two 300 mm screws that came with both the nuts and the motor couplers (eBay  - £16.70)
 
 * **An inertial measurement unit (IMU).** This will give the direction that the telescope is pointing in. I use the [ICM20948](https://shop.pimoroni.com/products/icm20948) from Pimoroni's Breakout Garden suite of controllers that has a magnetometer (for the azimuth pointing), a gyroscope and accelerometer (for the altitude posting) (Pimoroni - £13.80)
 
@@ -32,7 +30,8 @@ _More to be added!_
 
 * **Bits of wood** for the telescope mount. I have quite a bit of 18 mm plywood left over from when I built my kitchen, so will consider it free of charge. 🌳
 
-* **A bluetooth game pad.** I got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
+* **A bluetooth game pad.** I want something that'll manually move and focus the telescope and navigate the menu of the screen, so what better option than a games controller! 
+I already got the [8BitDo SN30 Bluetooth Gamepad](https://shop.pimoroni.com/products/8bitdo-sn30-bluetooth-gamepad?variant=30713757597779) to use with my RetroPi setup. 
 
 ## Building the telescope mount
 
@@ -52,8 +51,190 @@ I found a bit of PVC pipe to be inserted into the end of the telescope with the 
 
 
 
+## Motors
+
+The 28BYJ-48 stepper motors are ubiquitous and therefore very cheap. These motors contain four different coils, that are engaged in a particular sequence to drive the motor either forward or reverse. Each individual stepper step is 5.625°, so a whole revolution is about 64 steps. This is obviously too coarse to be used to driving the telescope directly (and these motors have very little torque), so the using lead-screws will enable very fine motion, but limiting the size of the sky I'll be able to look at without moving the whole mount manually, but that's something I'm willing to live with (for now!). 
+
+For the altitude control, there is about 9000 stepper motor steps that covers 80 degrees of movement over about 25 cm of the lead screw, giving a minimum resolution of 0.009 degrees ~ 0.5 arc minutes = 30 arc seconds (1 degree contains 60 minutes of arc and 3600 seconds of arc). This less than the diameter of Jupiter on the night-sky, so will be more adequate, if not overkill, for driving this tiny telescope. 
+
+![Azimuth and altitude motion](images/movement-screws.jpg)
+
+The controller class looks like this: 
+
+```python
+import RPi.GPIO as GPIO
+import atexit, pickle, os, time
+import numpy as np
+
+class motor28BJController() : 
+    """
+    Driver class for the 28BJ-48 stepper motor
+
+    Inputs : 
+        pins      The 4 Raspberry Pi GPIO pins that control the motor.
+        nickname  A name for the motor that's used to store the absolute position.
+
+    Options: 
+        limits    The absolute limits of the motors. This is the extreme limits beyond
+                  which things may break.
+    """
+    def __init__(self, pins, nickname, limits = [0, 0]) : 
+
+        self.pins = pins       
+        self.limits = limits
+        self.nickname = nickname
+        self.previous_warning = ''
+        self.savefile = 'motor_position_' + nickname + '.pickle'
+        atexit.register(self.exit)
+
+        # Setup the GPIO mode
+        GPIO.setmode(GPIO.BCM)
+
+        # Initialise the GPIO pins  
+        for pin in self.pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, False)
+
+        self.position = 0
+        self.counter = 0
+  
+        # The 28BJ-48 stepper motor sequence
+        self.seq = [[1,0,0,1],
+                    [1,0,0,0],
+                    [1,1,0,0],
+                    [0,1,0,0],
+                    [0,1,1,0],
+                    [0,0,1,0],
+                    [0,0,1,1],
+                    [0,0,0,1]] 
+
+        # Time between motor engagements
+        self.wait_time = 0.8e-3
+
+        # Restore previously saved 
+        if (os.path.isfile(self.savefile)) : 
+            self.position = pickle.load( open( self.savefile, 'rb' ) )
+            print('Loaded existing position for ' + self.nickname + ': ', self.position)
+
+    #
+    #   Move the position of the motor 
+    #
+    def move(self, direction) : 
+    
+        # Impose hardware limits
+        if (np.sum(self.limits) > 0) : 
+            if (self.position < self.limits[0] and direction == 1) : 
+                return self.warning('Motor ' + self.nickname + ' at maximum - cannot move further')
+            if (self.position > self.limits[1] and direction == -1) : 
+                return self.warning('Motor ' + self. nickname + ' at minimum - cannot move further')
+
+        # Iterate through the pattern
+        for index in range(len(self.pins)) : 
+            if (self.seq[self.counter][index] != 0) : GPIO.output(self.pins[index], True)
+            else : GPIO.output(self.pins[index], False)
+
+
+        # Tally up the position of the motor
+        self.counter += direction
+        if (self.counter >= len(self.seq)) : 
+            self.counter = 0
+            # Keep track of the absolute position of the motor 
+            self.position -= 1
+        if (self.counter < 0) : 
+            self.counter = len(self.seq) + direction
+            # Keep track of the absolute position of the motor 
+            self.position += 1
+            
+        time.sleep(self.wait_time)
+
+    #
+    #   Go to a specific motor position
+    #
+    def goto_pos(self, position) : 
+        if (position > self.position) : 
+            while (position != self.position) : 
+                self.move(-1)
+        if (position < self.position) : 
+            while (position != self.position) : 
+                self.move(1)
+    
+    #
+    #   Some kind of structured warning system
+    #    
+    def warning(self, message) : 
+        # Stop lots of the same messages
+        if (self.message != self.previous_warning) :        
+            print('🚨 MOTOR WARNING 🚨 ' + message)
+        self.previous_warning = message
+        return False
+
+    #
+    #   Cleanup the GPIO ports and save the motor state
+    #
+    def exit(self) :     
+        print('👋  Cleaning up motor ' +  self.nickname + ' 🧽 ')
+        pickle.dump( self.position , open( self.savefile, 'wb' ) )
+        # Note that I'm noot cleaning up the GPIOs - I wanna do that only once
+        # when we're cleaning up everything - perhaps not the best solution... 
+        # GPIO.cleanup()
+   
+```
+
+And so one instance can be created for each of the three stepper motors: 
+
+```python
+alt_pins =[17, 18, 27, 22]
+altMotor = motor28BJController(alt_pins, 'altitude', limits=[0, 8863])
+    
+azi_pins = [14, 15, 23, 24]
+aziMotor = motor28BJController(azi_pins, 'azimuth', limits = [0, 13500])
+
+focus_pins = [5, 6, 12, 13]
+focusMotor = motor28BJController(focus_pins, 'focus', limits = [0, 1625])
+```
+
+
+## The gamepad controller 
+
+To pair the bluetooth 8BitDo SN30 Bluetooth game pad with the Raspberry Pi:
+
+`sudo bluetoothctl`
+
+Then turn on the bluetooth controller by holding `X`, then pressing `start`. This will start the controller in `xinput` mode, which was [originally a protocol for the Xbox 360](https://en.wikipedia.org/wiki/DirectInput). 
+
+```
+[bluetooth]# agent on
+[bluetooth]# default-agent
+[bluetooth]# scan on
+```
+Wait for the bluetooth to pick up the controller - should look something like this:
+
+
+`Device E4:17:D8:38:F1:FA 8Bitdo SN30 GamePad`
+
+
+Then just trust, pair, and connect to the gamepad: 
+
+```
+[bluetooth]# trust E4:17:D8:38:F1:FA
+[bluetooth]# pair E4:17:D8:38:F1:FA
+[bluetooth]# connect E4:17:D8:38:F1:FA
+[bluetooth]# exit
+```
+
+This will make the gamepad automatically connect to the Raspberry Pi and create the device in, e.g.: 
+
+`/dev/input/event0`
+
+Which can then be polled for event (i.e. some button has been pressed!). Each press on the pad returns a event name and an event value. These names don't make a lot of sense, so I have a function in the `interfaceController` that can parse them into more sensible 
+
+
+
 
 ## Raspberry Pi GPIO mappings
+
+![Prototype Telescope Controller HAT](images/hat.jpg)
+
 
 | GPIO pin | Connects to  | Purpose |
 |:----------------:|:-------------:|:-------:|
